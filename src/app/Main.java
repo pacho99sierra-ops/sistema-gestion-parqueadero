@@ -73,6 +73,11 @@ public class Main {
     }
 
     static void registrarEntrada(){
+        int celda = buscarCeldaDisponibles();
+        if (celda == -1) {
+            imprimir("El parqueadero esta lleno. No hay celdas disponibles");
+            return;
+        }
         imprimir("Seleccione el tipo de vehiculo; 1 para carro, 2 para moto. ");
         int tipo = SCANNER.nextInt();
         SCANNER.nextLine();
@@ -81,7 +86,6 @@ public class Main {
         String texto = SCANNER.nextLine().trim();
         LocalDateTime ingreso = LocalDateTime.parse(texto, FORMATO_FECHA_HORA);
 
-        int celda = celdasOcupadas; //Provisional
 
         if (tipo == 1) {
             tiposVehiculo[celda] = CARRO;
@@ -91,7 +95,15 @@ public class Main {
         fechasIngreso[celda] = ingreso;
         celdasOcupadas++;
 
-        imprimir(tiposVehiculo[celda] + " registrado en la celda " + celda +1 + ".");
+        imprimir(tiposVehiculo[celda] + " registrado en la celda " + (celda + 1) + ".");
     }
 
+    static int buscarCeldaDisponibles() {
+        for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
+            if (tiposVehiculo[i] == null) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
