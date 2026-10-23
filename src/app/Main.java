@@ -31,8 +31,67 @@ public class Main {
     static long recaudoMotos = 0;
 
     public static void main(String[] args) {
+        inicializarArreglos();
 
+        int opcion;
+
+        do {
+            mostrarMenu();
+            opcion = SCANNER.nextInt();
+            SCANNER.nextLine();
+
+            switch (opcion) {
+                case 1 -> registrarEntrada();
+                case 2 -> imprimir("Registro de salida: pendiente.");
+                case 3 -> imprimir("Reporte de ocupacion: pendiente.");
+                case 4 -> imprimir("Reporte financiero: pendiente.");
+                case 5 -> imprimir("Gracias por usar el sistema de gestion.");
+                default -> imprimir("Opcion no valida.");
+            }
+        } while (opcion != 5);
+        SCANNER.close();
     }
 
+    static void inicializarArreglos() {
+        for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
+            tiposVehiculo[i] = null;
+            fechasIngreso[i] = null;
+        }
+    }
+    static void imprimir(String mensaje) {
+        System.out.println(mensaje);
+    }
+    static void mostrarMenu() {
+        imprimir("");
+        imprimir("=====Parqueadero=====");
+        imprimir("1. Registrar entrada");
+        imprimir("2. Registrar salida");
+        imprimir("3. Reporte de ocupacion");
+        imprimir("4. Reporte financiero");
+        imprimir("5. Salir");
+        System.out.print("Seleccione una opcion: ");
+    }
+
+    static void registrarEntrada(){
+        imprimir("Seleccione el tipo de vehiculo; 1 para carro, 2 para moto. ");
+        int tipo = SCANNER.nextInt();
+        SCANNER.nextLine();
+
+        System.out.print("Fecha y hora de ingreso (yyyy-MM-dd HH:mm): ");
+        String texto = SCANNER.nextLine().trim();
+        LocalDateTime ingreso = LocalDateTime.parse(texto, FORMATO_FECHA_HORA);
+
+        int celda = celdasOcupadas; //Provisional
+
+        if (tipo == 1) {
+            tiposVehiculo[celda] = CARRO;
+        } else {
+            tiposVehiculo[celda] = MOTO;
+        }
+        fechasIngreso[celda] = ingreso;
+        celdasOcupadas++;
+
+        imprimir(tiposVehiculo[celda] + " registrado en la celda " + celda +1 + ".");
+    }
 
 }
