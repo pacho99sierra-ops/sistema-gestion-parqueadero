@@ -41,7 +41,7 @@ public class Main {
 
             switch (opcion) {
                 case 1 -> registrarEntrada();
-                case 2 -> imprimir("Registro de salida: pendiente.");
+                case 2 -> registrarSalida();
                 case 3 -> imprimir("Reporte de ocupacion: pendiente.");
                 case 4 -> imprimir("Reporte financiero: pendiente.");
                 case 5 -> imprimir("Gracias por usar el sistema de gestion.");
@@ -173,4 +173,40 @@ public class Main {
             return fecha;
         }
     }
+
+    static void registrarSalida() {
+        if (celdasOcupadas == 0) {
+            imprimir("El parqueadero esta vacio. No hay vehiculos para retirar.");
+            return;
+        }
+
+        int celda = leerEntero("Numero de celda a liberar (1 a " + CAPACIDAD_TOTAL + "): ", 1, CAPACIDAD_TOTAL);
+        int indice = celda - 1;
+
+        if (tiposVehiculo[indice] == null) {
+            imprimir("La celda " + celda + " esta vacia.");
+            return;
+        }
+
+        imprimir("Celda " + celda + ": " + tiposVehiculo[indice]
+                + ", ingreso " + fechasIngreso[indice].format(FORMATO_FECHA_HORA));
+
+        LocalDateTime ingreso = fechasIngreso[indice];
+        LocalDateTime salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
+
+        while (!salida.isAfter(ingreso)) {
+            imprimir("ERROR: La salida debe ser posterior al ingreso ("
+                    + ingreso.format(FORMATO_FECHA_HORA) + ").");
+            salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
+        }
+
+        String tipo = tiposVehiculo[indice];
+
+        tiposVehiculo[indice] = null;
+        fechasIngreso[indice] = null;
+        celdasOcupadas--;
+
+        imprimir(tipo + " retirado de la celda " + celda + ". Celda liberada.");
+    }
+
 }
