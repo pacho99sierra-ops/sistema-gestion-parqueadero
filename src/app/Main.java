@@ -44,8 +44,8 @@ public class Main {
             switch (opcion) {
                 case 1 -> registrarEntrada();
                 case 2 -> registrarSalida();
-                case 3 -> imprimir("Reporte de ocupacion: pendiente.");
-                case 4 -> imprimir("Reporte financiero: pendiente.");
+                case 3 -> reporteOcupacion();
+                case 4 -> reporteFinanciero();
                 case 5 -> imprimir("Gracias por usar el sistema de gestion.");
                 default -> imprimir("Opcion no valida.");
             }
@@ -134,7 +134,6 @@ public class Main {
         fechasIngreso[indice] = null;
         celdasOcupadas--;
 
-        imprimir(tipo + " retirado de la celda " + celda + ". Celda liberada.");
     }
 
     static int buscarCeldaDisponibles() {
@@ -274,7 +273,24 @@ public class Main {
         imprimir("=======================");
     }
 
+    static void reporteOcupacion() {
+        int celdasLibres = CAPACIDAD_TOTAL - celdasOcupadas;
 
+        imprimir("");
+        imprimir("=== REPORTE DE OCUPACION ===");
+        imprimir("Celdas ocupadas: " + celdasOcupadas);
+        imprimir("Celdas libres: " + celdasLibres);
+    }
+
+    static void reporteFinanciero() {
+        long totalGeneral = recaudoCarros + recaudoMotos;
+
+        imprimir("");
+        imprimir("=== REPORTE FINANCIERO ===");
+        imprimir("Recaudo carros: $" + recaudoCarros);
+        imprimir("Recaudo motos: $" + recaudoMotos);
+        imprimir("Total general: $" + totalGeneral);
+    }
 
 
 }
