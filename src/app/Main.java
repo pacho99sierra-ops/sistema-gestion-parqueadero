@@ -3,6 +3,8 @@ package app;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 public class Main {
 
@@ -92,6 +94,49 @@ public class Main {
         imprimir(tiposVehiculo[celda] + " registrado en la celda " + (celda + 1) + ".");
     }
 
+    static void registrarSalida() {
+        if (celdasOcupadas == 0) {
+            imprimir("El parqueadero esta vacio. No hay vehiculos para retirar.");
+            return;
+        }
+
+        int celda = leerEntero("Numero de celda a liberar (1 a " + CAPACIDAD_TOTAL + "): ", 1, CAPACIDAD_TOTAL);
+        int indice = celda - 1;
+
+        if (tiposVehiculo[indice] == null) {
+            imprimir("La celda " + celda + " esta vacia.");
+            return;
+        }
+
+        imprimir("Celda " + celda + ": " + tiposVehiculo[indice]
+                + ", ingreso " + fechasIngreso[indice].format(FORMATO_FECHA_HORA));
+
+        LocalDateTime ingreso = fechasIngreso[indice];
+        LocalDateTime salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
+
+        while (salida.isBefore(ingreso)) {
+            imprimir("ERROR: La salida no puede ser anterior al ingreso ("
+                    + ingreso.format(FORMATO_FECHA_HORA) + ").");
+            salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
+        }
+
+        String tipo = tiposVehiculo[indice];
+
+        long total = liquidar(celda, tipo, ingreso, salida);
+
+        if (tipo.equals(CARRO)) {
+            recaudoCarros += total;
+        } else {
+            recaudoMotos += total;
+        }
+
+        tiposVehiculo[indice] = null;
+        fechasIngreso[indice] = null;
+        celdasOcupadas--;
+
+        imprimir(tipo + " retirado de la celda " + celda + ". Celda liberada.");
+    }
+
     static int buscarCeldaDisponibles() {
         for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
             if (tiposVehiculo[i] == null) {
@@ -174,39 +219,62 @@ public class Main {
         }
     }
 
-    static void registrarSalida() {
-        if (celdasOcupadas == 0) {
-            imprimir("El parqueadero esta vacio. No hay vehiculos para retirar.");
-            return;
-        }
-
-        int celda = leerEntero("Numero de celda a liberar (1 a " + CAPACIDAD_TOTAL + "): ", 1, CAPACIDAD_TOTAL);
-        int indice = celda - 1;
-
-        if (tiposVehiculo[indice] == null) {
-            imprimir("La celda " + celda + " esta vacia.");
-            return;
-        }
-
-        imprimir("Celda " + celda + ": " + tiposVehiculo[indice]
-                + ", ingreso " + fechasIngreso[indice].format(FORMATO_FECHA_HORA));
-
-        LocalDateTime ingreso = fechasIngreso[indice];
-        LocalDateTime salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
-
-        while (!salida.isAfter(ingreso)) {
-            imprimir("ERROR: La salida debe ser posterior al ingreso ("
-                    + ingreso.format(FORMATO_FECHA_HORA) + ").");
-            salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
-        }
-
-        String tipo = tiposVehiculo[indice];
-
-        tiposVehiculo[indice] = null;
-        fechasIngreso[indice] = null;
-        celdasOcupadas--;
-
-        imprimir(tipo + " retirado de la celda " + celda + ". Celda liberada.");
+    static long contarDiasCompletos(LocalDateTime ingreso, LocalDateTime salida) {
+        return ChronoUnit.DAYS.between(ingreso, salida);
     }
+
+    static long calcularHorasRestantes(LocalDateTime cursor, LocalDateTime salida) {
+        long minutosRestantes = Duration.between(cursor, salida).toMinutes();
+        return (minutosRestantes + 59) / 60;
+    }
+
+    static long liquidar(int celda, String tipo, LocalDateTime ingreso, LocalDateTime salida) {
+        long diasACobrar = contarDiasCompletos(ingreso, salida);
+        LocalDateTime cursor = ingreso.plusDays(diasACobrar);
+        long horasACobrar = calcularHorasRestantes(cursor, salida);
+
+        if (horasACobrar >= UMBRAL_HORAS_DIA) {
+            diasACobrar++;
+            horasACobrar = 0;
+        }
+
+        int tarifaDia;
+        int tarifaHora;
+        if (tipo.equals(CARRO)) {
+            tarifaDia = TARIFA_DIA_CARRO;
+            tarifaHora = TARIFA_HORA_CARRO;
+        } else {
+            tarifaDia = TARIFA_DIA_MOTO;
+            tarifaHora = TARIFA_HORA_MOTO;
+        }
+
+        long total = diasACobrar * tarifaDia + horasACobrar * tarifaHora;
+
+        mostrarFactura(celda, tipo, ingreso, salida, diasACobrar, tarifaDia, horasACobrar, tarifaHora, total);
+        return total;
+    }
+
+    static void mostrarFactura(int celda, String tipo, LocalDateTime ingreso, LocalDateTime salida,
+                               long dias, int tarifaDia, long horas, int tarifaHora, long total) {
+        imprimir("");
+        imprimir("======= FACTURA =======");
+        imprimir("Celda liberada: " + celda);
+        imprimir("Vehiculo: " + tipo);
+        imprimir("Ingreso: " + ingreso.format(FORMATO_FECHA_HORA));
+        imprimir("Salida:  " + salida.format(FORMATO_FECHA_HORA));
+        imprimir("-----------------------");
+        if (dias > 0) {
+            imprimir(dias + " dia(s) x $" + tarifaDia + " = $" + (dias * tarifaDia));
+        }
+        if (horas > 0) {
+            imprimir(horas + " hora(s) x $" + tarifaHora + " = $" + (horas * tarifaHora));
+        }
+        imprimir("-----------------------");
+        imprimir("TOTAL A PAGAR: $" + total);
+        imprimir("=======================");
+    }
+
+
+
 
 }
